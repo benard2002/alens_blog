@@ -14,21 +14,9 @@ import os
 # Optional: add contact me email functionality (Day 60)
 import smtplib
 
-print("DB_URI", os.environ.get("DB_URI"))
-print("aa", os.environ.get("FLASK_KEY"))
-'''
-Make sure the required packages are installed: 
-Open the Terminal in PyCharm (bottom left). 
-
-On Windows type:
-python -m pip install -r requirements.txt
-
-On MacOS type:
-pip3 install -r requirements.txt
-
-This will install the packages from the requirements.txt for this project.
-'''
-
+today = date.today()
+current_year = today.strftime("%Y")
+print(current_year)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FLASK_KEY')
@@ -154,7 +142,7 @@ def register():
         # This line will authenticate the user with Flask-Login
         login_user(new_user)
         return redirect(url_for("get_all_posts"))
-    return render_template("register.html", form=form, current_user=current_user)
+    return render_template("register.html", form=form, current_user=current_user, current_year=current_year)
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -177,7 +165,7 @@ def login():
             login_user(user)
             return redirect(url_for('get_all_posts'))
 
-    return render_template("login.html", form=form, current_user=current_user)
+    return render_template("login.html", form=form, current_user=current_user, current_year=current_year)
 
 
 @app.route('/logout')
@@ -190,7 +178,7 @@ def logout():
 def get_all_posts():
     result = db.session.execute(db.select(BlogPost))
     posts = result.scalars().all()
-    return render_template("index.html", all_posts=posts, current_user=current_user)
+    return render_template("index.html", all_posts=posts, current_user=current_user, current_year=current_year)
 
 
 # Add a POST method to be able to post comments
@@ -212,7 +200,7 @@ def show_post(post_id):
         )
         db.session.add(new_comment)
         db.session.commit()
-    return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form)
+    return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form, current_year=current_year)
 
 
 # Use a decorator so only an admin user can create new posts
@@ -232,7 +220,7 @@ def add_new_post():
         db.session.add(new_post)
         db.session.commit()
         return redirect(url_for("get_all_posts"))
-    return render_template("make-post.html", form=form, current_user=current_user)
+    return render_template("make-post.html", form=form, current_user=current_user, current_year=current_year)
 
 
 # Use a decorator so only an admin user can edit a post
@@ -254,7 +242,7 @@ def edit_post(post_id):
         post.body = edit_form.body.data
         db.session.commit()
         return redirect(url_for("show_post", post_id=post.id))
-    return render_template("make-post.html", form=edit_form, is_edit=True, current_user=current_user)
+    return render_template("make-post.html", form=edit_form, is_edit=True, current_user=current_user, current_year=current_year)
 
 
 # Use a decorator so only an admin user can delete a post
@@ -269,7 +257,7 @@ def delete_post(post_id):
 
 @app.route("/about")
 def about():
-    return render_template("about.html", current_user=current_user)
+    return render_template("about.html", current_user=current_user, current_year=current_year)
 
 
 
@@ -286,7 +274,7 @@ def contact():
         
         
         return render_template("contact.html", msg_sent=True, current_user=current_user)
-    return render_template("contact.html", msg_sent=False, current_user=current_user)
+    return render_template("contact.html", msg_sent=False, current_user=current_user, current_year=current_year)
 
 
 def send_email(name, email, phone, message):
@@ -298,4 +286,4 @@ def send_email(name, email, phone, message):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5002)
