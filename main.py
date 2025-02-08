@@ -106,7 +106,7 @@ def admin_only(f):
     def decorated_function(*args, **kwargs):
         # If id is not 1 then return abort with 403 error
         if current_user.id != 1:
-            return abort(403)
+            return abort(403, "Please this page is restricted. Only admin can view.")
         # Otherwise continue with the route function
         return f(*args, **kwargs)
 
@@ -285,5 +285,14 @@ def send_email(name, email, phone, message):
         connection.sendmail(MAIL_ADDRESS, email, email_message)
 
 
+# View Users
+@app.route("/users")
+def view_users():
+    result = db.session.execute(db.select(User)).scalars()
+    all_users = result.all()
+    
+    return render_template("users.html", users=all_users)
+
 if __name__ == "__main__":
     app.run(debug=True, port=5003)
+    
