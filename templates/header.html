@@ -44,7 +44,7 @@
     <!-- Navigation-->
     <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
       <div class="container px-4 px-lg-5">
-        <a class="navbar-brand" href="/">GrapesTech</a>
+        <a class="navbar-brand" href="/">Dee's Blog</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -105,6 +105,17 @@
                 >Contact</a
               >
             </li>
+            
+            {%if current_user.id == 1%}
+            <li class="nav-item">
+              <a
+                class="nav-link px-lg-3 py-3 py-lg-4"
+                href="{{ url_for('view_users') }}"
+                >View Users</a
+              >
+
+            </li>
+            {% endif %}
           </ul>
         </div>
       </div>
