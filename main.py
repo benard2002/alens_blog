@@ -340,7 +340,7 @@ def notify_registered_users(title, subtitle,link):
                 )
 # View Users
 @app.route("/users")
-@admin_only 
+@admin_only
 def view_users():
     result = db.session.execute(db.select(User)).scalars()
     all_users = result.all()
