@@ -287,6 +287,7 @@ def send_email(name, email, phone, message):
 
 # View Users
 @app.route("/users")
+@admin_only
 def view_users():
     result = db.session.execute(db.select(User)).scalars()
     all_users = result.all()
