@@ -14,11 +14,6 @@ import os
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
-# user celery for background processing
-from celery import Celery
-
-
 # Optional: add contact me email functionality (Day 60)
 import smtplib
 
@@ -345,7 +340,7 @@ def notify_registered_users(title, subtitle,link):
                 )
 # View Users
 @app.route("/users")
-#enable that @admin_only 
+@admin_only 
 def view_users():
     result = db.session.execute(db.select(User)).scalars()
     all_users = result.all()
