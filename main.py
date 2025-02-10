@@ -162,7 +162,6 @@ Dee
 Tea from Dee.
 """
 )
-       
         return redirect(url_for("get_all_posts"))
     return render_template("register.html", form=form, current_user=current_user, current_year=current_year)
 
