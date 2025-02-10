@@ -11,6 +11,9 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 import os
+
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 # Optional: add contact me email functionality (Day 60)
 import smtplib
 
@@ -42,6 +45,7 @@ gravatar = Gravatar(app,
                     force_lower=False,
                     use_ssl=False,
                     base_url=None)
+
 
 # CREATE DATABASE
 class Base(DeclarativeBase):
@@ -141,6 +145,24 @@ def register():
         db.session.commit()
         # This line will authenticate the user with Flask-Login
         login_user(new_user)
+        mail_reg_users(
+    email=new_user.email, 
+    email_message=f"""Subject: Welcome to Tea from Dea — Let's Explore Together
+Hi {new_user.name},  
+Thank you for joining Dee's Blog! We're excited to have you on board.  
+
+Here, you'll discover a lot on life, insightful articles, exciting updates, and expert opinions on topics that matter.  
+
+Start exploring today: https://alens-blog.onrender.com  
+
+Feel free to comment, share your thoughts, or reach out anytime.  
+
+Happy reading,  
+Dee  
+Tea from Dee.
+"""
+)
+       
         return redirect(url_for("get_all_posts"))
     return render_template("register.html", form=form, current_user=current_user, current_year=current_year)
 
@@ -219,6 +241,7 @@ def add_new_post():
         )
         db.session.add(new_post)
         db.session.commit()
+        notify_registered_users(title=new_post.title, subtitle=new_post.subtitle, link=url_for(f'show_post', post_id=new_post.id))
         return redirect(url_for("get_all_posts"))
     return render_template("make-post.html", form=form, current_user=current_user, current_year=current_year)
 
@@ -282,16 +305,68 @@ def send_email(name, email, phone, message):
     with smtplib.SMTP("smtp.gmail.com", 587) as connection:
         connection.starttls()
         connection.login(MAIL_ADDRESS, MAIL_APP_PW)
-        connection.sendmail(MAIL_ADDRESS, email, email_message)
+        connection.sendmail(MAIL_ADDRESS, email, msg=email_message.encode('utf-8'))
 
 
+def mail_reg_users(email,email_message):
+    with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+        connection.starttls()
+        connection.login(MAIL_ADDRESS, MAIL_APP_PW)
+        connection.sendmail(MAIL_ADDRESS, email, msg=email_message.encode('utf-8'))
+
+def notify_registered_users(title, subtitle,link):
+        result = db.session.execute(db.select(User)).scalars()
+        all_users = result.all()
+        with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+            connection.starttls()
+            connection.login(MAIL_ADDRESS, MAIL_APP_PW)
+            for user in all_users[1:]:
+                
+                
+                # Create a MIME message
+                msg = MIMEMultipart("alternative")
+                msg["From"] = MAIL_ADDRESS
+                msg["To"] = user.email
+                msg["Subject"] = "New Post from Dee"
+                
+                # HTML content
+                html_content = f"""
+                <html>
+                <body>
+                    <h2>Hello {user.name},</h2>
+                    <p>We've just published a brand-new post: <strong>{title}</strong>.</p>
+                    <p>Here's a sneak peek:</p>
+                    <blockquote>{subtitle}</blockquote>
+                    <p>Want to read the rest? Click the button below to read the full post!</p>
+                    
+                    <p>
+                        <a href="{link}" style="display:inline-block; padding:10px 15px; font-size:16px; 
+                        background-color:#007BFF; color:white; text-decoration:none; border-radius:5px;">
+                        Read Full Post
+                        </a>
+                    </p>
+                    
+                    <p>Thank you for being part of Dee's Blog. Your support means everything to us!</p>
+                    <p>Cheers, <br> <strong>Dee.</strong></p>
+                </body>
+                </html>
+                """
+                
+                # Attach the HTML content
+                msg.attach(MIMEText(html_content, "html"))
+                
+                # Send the email
+                connection.sendmail(
+                    MAIL_ADDRESS,
+                    user.email,
+                    msg.as_string()
+                )
 # View Users
 @app.route("/users")
 @admin_only
 def view_users():
     result = db.session.execute(db.select(User)).scalars()
     all_users = result.all()
-    
     return render_template("users.html", users=all_users)
 
 if __name__ == "__main__":
