@@ -240,7 +240,7 @@ def add_new_post():
         )
         db.session.add(new_post)
         db.session.commit()
-        notify_registered_users(title=new_post.title, subtitle=new_post.subtitle, link=url_for(f'show_post', post_id=new_post.id))
+        notify_registered_users(title=new_post.title, subtitle=new_post.subtitle, link=f"https://alens-blog.onrender.com/post/{new_post.id}")
         return redirect(url_for("get_all_posts"))
     return render_template("make-post.html", form=form, current_user=current_user, current_year=current_year)
 
